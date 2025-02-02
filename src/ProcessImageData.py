@@ -17,7 +17,7 @@ class ProcessBinaryImgData:
     def __init__(self):
         None
 
-    def image_data_format_check(self, img_dir):
+    def format(self, img_dir):
         """
         Function ensures given path img_dir contains the required formatting:
             - Exactly two folders
