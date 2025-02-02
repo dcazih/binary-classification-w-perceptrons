@@ -74,3 +74,58 @@ class ProcessBinaryImgData:
             y - Class labels for images where 1 - first image folder (cat), 0 - second image folder(dog)
             Both arrays randomly permutated together
         """
+
+        # Get image data and ensure proper format
+        image_data_path = Path(img_dir)
+        cat_subdir, dog_subdir = format(image_data_path)
+
+        # ==* Process images into numpy vectors to create our training dataset  *==
+
+        cat_img_list, dog_img_list = [] # Initialize image arrays
+
+
+        # Store processed images in numpy array: cat_img_array
+        n = 0
+        for cat_pic_path in cat_subdir.glob("*.jpg"):
+
+            # Todoo: Remove limit of 20 images when done testing
+            if n > 20: break
+            else: n+=1
+
+            cat_img = Image.open(cat_pic_path)
+            cat_img.resize((28, 28))  # Resize
+            cat_img = cat_img.convert('L')  # Convert to greyscale
+            cat_img_array = np.array(cat_img).flatten()  # Flatten image to vector
+            cat_img_array = cat_img_array / 255.0  # Normalize pixel values (0, 1)
+
+            cat_img_list.append(cat_img_array)  # Append processed image
+
+        # Store processed images in  in numpy array: dog_img_array
+        n = 0
+        for dog_pic_path in dog_subdir.glob("*.jpg"):
+
+            # Todoo: Remove limit of 20 images when done testing
+            if n > 20: break
+            else: n += 1
+
+            dog_img = Image.open(dog_pic_path)
+            dog_img = dog_img.resize((28, 28))  # Resize to 28x28
+            dog_img = dog_img.convert('L')  # Convert the image to grayscale
+            dog_img_array = np.array(dog_img).flatten()  # Flatten image to vector
+            dog_img_array = dog_img_array / 255.0  # Normalize pixel values (0, 1)
+
+            dog_img_list.append(dog_img_array)  # Append processed image
+
+        # Create feature matrix (X): a 2D numpy array of numpy vector images (arrays)
+        X = np.array(cat_img_list + dog_img_list, dtype=object)
+
+        # Create label vector (y): a 1D numpy array, denoting 1 for cats and 0 for dogs
+        cats, dogs = np.ones(len(cat_img_list), dtype=int), np.zeros(len(dog_img_list), dtype=int)
+        y = np.concatenate((cats, dogs))
+
+        # Randomly permutate X and y
+        permutation = np.random.permutation(len(X))
+        X, y = X[permutation], y[permutation]
+
+        return X, y
+
