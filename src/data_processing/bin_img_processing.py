@@ -1,4 +1,4 @@
-from PIL import Image
+from PIL import Image, UnidentifiedImageError
 from pathlib import Path
 import numpy as np
 
@@ -85,41 +85,47 @@ def preprocess(img_dir):
     # Store processed images in numpy array: cat_img_array
     n = 0
     for cat_pic_path in cat_subdir.glob("*.jpg"):
+        try:
+            # Todoo: Remove limit of 20 images when done testing
+            #if n > 20:
+            #    break
+            #else:
+            #    n += 1
+            cat_img = Image.open(cat_pic_path)
+            cat_img = cat_img.resize((28, 28), Image.Resampling.LANCZOS)  # Resize
+            cat_img = cat_img.convert('L')  # Convert to greyscale
+            cat_img_array = np.array(cat_img).flatten()  # Flatten image to vector
+            cat_img_array = cat_img_array / 255.0  # Normalize pixel values (0, 1)
 
-        # Todoo: Remove limit of 20 images when done testing
-        if n > 20:
-            break
-        else:
-            n += 1
-
-        cat_img = Image.open(cat_pic_path)
-        cat_img.resize((28, 28))  # Resize
-        cat_img = cat_img.convert('L')  # Convert to greyscale
-        cat_img_array = np.array(cat_img).flatten()  # Flatten image to vector
-        cat_img_array = cat_img_array / 255.0  # Normalize pixel values (0, 1)
-
-        cat_img_list.append(cat_img_array)  # Append processed image
+            cat_img_list.append(cat_img_array)  # Append processed image
+        except (UnidentifiedImageError, IOError, OSError) as e:
+            # If an error occurs (e.g., invalid image), print the error and skip this image
+            print(f"Skipping invalid image: {cat_pic_path} - {e}")
 
     # Store processed images in  in numpy array: dog_img_array
     n = 0
     for dog_pic_path in dog_subdir.glob("*.jpg"):
+        try:
+            # Todoo: Remove limit of 20 images when done testing
+            #if n > 20:
+            #    break
+            #else:
+            #    n += 1
 
-        # Todoo: Remove limit of 20 images when done testing
-        if n > 20:
-            break
-        else:
-            n += 1
+            dog_img = Image.open(dog_pic_path)
+            dog_img = dog_img.resize((28, 28), Image.Resampling.LANCZOS)  # Resize to 28x28
+            dog_img = dog_img.convert('L')  # Convert the image to grayscale
+            dog_img_array = np.array(dog_img).flatten()  # Flatten image to vector
+            dog_img_array = dog_img_array / 255.0  # Normalize pixel values (0, 1)
 
-        dog_img = Image.open(dog_pic_path)
-        dog_img = dog_img.resize((28, 28))  # Resize to 28x28
-        dog_img = dog_img.convert('L')  # Convert the image to grayscale
-        dog_img_array = np.array(dog_img).flatten()  # Flatten image to vector
-        dog_img_array = dog_img_array / 255.0  # Normalize pixel values (0, 1)
+            dog_img_list.append(dog_img_array)  # Append processed image
 
-        dog_img_list.append(dog_img_array)  # Append processed image
+        except (UnidentifiedImageError, IOError, OSError) as e:
+            # If an error occurs (e.g., invalid image), print the error and skip this image
+            print(f"Skipping invalid image: {dog_pic_path} - {e}")
 
     # Create feature matrix (X): a 2D numpy array of numpy vector images (arrays)
-    X = np.array(cat_img_list + dog_img_list, dtype=object)
+    X = np.array(cat_img_list + dog_img_list, dtype=float)
     print("Feature Matrix: Created")
 
     # Create label vector (y): a 1D numpy array, denoting 1 for cats and 0 for dogs
