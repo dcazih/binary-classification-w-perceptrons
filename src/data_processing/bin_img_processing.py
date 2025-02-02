@@ -14,7 +14,7 @@ import numpy as np
     """
 
 
-def format(self, img_dir):
+def format(img_dir):
     """
     Function ensures given path img_dir contains the required formatting:
         - Exactly two folders
@@ -56,7 +56,7 @@ def format(self, img_dir):
     return subdirs[0], subdirs[1]
 
 
-def preprocess(self, img_dir):
+def preprocess(img_dir):
     """
     Process the image data to flatten and normalize each image, label them
     and return them as X and y, our desired calculation parameters
