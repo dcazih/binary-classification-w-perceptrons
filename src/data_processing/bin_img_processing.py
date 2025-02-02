@@ -76,7 +76,7 @@ def preprocess(img_dir):
 
     # Get image data and ensure proper format
     image_data_path = Path(img_dir)
-    cat_subdir, dog_subdir = self.format(image_data_path)
+    cat_subdir, dog_subdir = format(image_data_path)
 
     # ==* Process images into numpy vectors to create our training dataset  *==
 
@@ -120,14 +120,12 @@ def preprocess(img_dir):
 
     # Create feature matrix (X): a 2D numpy array of numpy vector images (arrays)
     X = np.array(cat_img_list + dog_img_list, dtype=object)
-    print("Feature Matrix: Created Successfully")
-    print("flattened cat image: ", X[:1])
+    print("Feature Matrix: Created")
 
     # Create label vector (y): a 1D numpy array, denoting 1 for cats and 0 for dogs
     cats, dogs = np.ones(len(cat_img_list), dtype=int), np.zeros(len(dog_img_list), dtype=int)
     y = np.concatenate((cats, dogs))
-    print("Class Labels: Created Successfully")
-    print("cat:", y[:1])
+    print("Class Labels: Created")
 
     # Randomly permutate X and y
     permutation = np.random.permutation(len(X))
