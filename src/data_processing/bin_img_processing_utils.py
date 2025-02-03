@@ -3,6 +3,15 @@ from sklearn.metrics import confusion_matrix, accuracy_score, ConfusionMatrixDis
 from PIL import Image, UnidentifiedImageError
 from pathlib import Path
 import numpy as np
+import imgaug.augmenters as iaa
+
+augmenter = iaa.Sequential([
+    iaa.Fliplr(0.5),  # Flip 50% of images horizontally
+    iaa.Affine(rotate=(-10, 10)),  # Slight rotation between -10° to 10°
+    iaa.Multiply((0.9, 1.1)),  # Adjust brightness slightly
+    iaa.GaussianBlur(sigma=(0.0, 0.3))  # Light blur to simulate slight focus differences
+])
+
 
 """
     Functions for processing binary image data for binary classification.
@@ -58,7 +67,7 @@ def format(img_dir):
     return subdirs[0], subdirs[1]
 
 
-def preprocess(img_dir):
+def preprocess(img_dir, augment=True):
     """
     Process the image data to flatten and normalize each image, label them
     and return them as X and y, our desired calculation parameters
@@ -90,10 +99,17 @@ def preprocess(img_dir):
         try:
             cat_img = Image.open(cat_pic_path)
             print(cat_img.filename)
+
             cat_img = cat_img.resize((28, 28), Image.Resampling.LANCZOS)  # Resize
             cat_img = cat_img.convert('L')  # Convert to greyscale
-            cat_img_array = np.array(cat_img).flatten()  # Flatten image to vector
+
+            cat_img_array = np.array(cat_img)
+            if augment:
+                cat_img_array = augmenter.augment_image(cat_img_array)  # Apply augmentation
+
+            cat_img_array = cat_img_array.flatten()  # Flatten image to vector
             cat_img_array = cat_img_array / 255.0  # Normalize pixel values (0, 1)
+
             cat_img_list.append(cat_img_array)  # Append processed image
 
         except (UnidentifiedImageError, IOError, OSError) as e:
@@ -109,8 +125,14 @@ def preprocess(img_dir):
 
             dog_img = dog_img.resize((28, 28), Image.Resampling.LANCZOS)  # Resize to 28x28
             dog_img = dog_img.convert('L')  # Convert the image to grayscale
-            dog_img_array = np.array(dog_img).flatten()  # Flatten image to vector
+
+            dog_img_array = np.array(dog_img)
+            if augment:
+                dog_img_array = augmenter.augment_image(dog_img_array)  # Apply augmentation
+
+            dog_img_array = dog_img_array.flatten()  # Flatten image to vector
             dog_img_array = dog_img_array / 255.0  # Normalize pixel values (0, 1)
+
             dog_img_list.append(dog_img_array)  # Append processed image
 
         except (UnidentifiedImageError, IOError, OSError) as e:
@@ -118,6 +140,9 @@ def preprocess(img_dir):
             print(f"Skipping invalid image: {dog_pic_path} - {e}")
 
     # Create feature matrix (X): a 2D numpy array of numpy vector images (arrays)
+
+
+    print(len(cat_img_list), len(dog_img_list))
     X = np.array(cat_img_list + dog_img_list, dtype=float)
     print("Feature Matrix: Created")
 
