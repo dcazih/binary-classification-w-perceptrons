@@ -9,9 +9,9 @@ class BinImgProcessor:
         self.img_dir = img_dir
         self.processed_data_path = Path(__file__).parent / "processed_data" / "processed_images.npz"
 
-    def process(self, img_dir):
+    def process(self, ):
         # Obtain image data
-        self.X, self.y = preprocess(img_dir)
+        self.X, self.y = preprocess(self.img_dir)
 
         # Split the data into training and testing (90% for training, 10% for testing)
         self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.X, self.y, test_size=0.1,
