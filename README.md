@@ -1,4 +1,4 @@
-# Binary Classification with Perceptron
+# Binary Classification Using a Perceptron
 
 ## Project Overview
 
