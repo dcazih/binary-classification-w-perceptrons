@@ -1,17 +1,19 @@
+from matplotlib import pyplot as plt
+from sklearn.metrics import confusion_matrix, accuracy_score, ConfusionMatrixDisplay
 from PIL import Image, UnidentifiedImageError
 from pathlib import Path
 import numpy as np
 
 """
     Functions for processing binary image data for binary classification.
-
+    
     Functions are designed to:
     - Ensure the correct directory structure and format of image data for binary classification
     - Preprocess the images (flattening and normalization)
     - Generate appropriate labels for the image data (0 or 1)
-
+    
     The image data is assumed to be organized into two subdirectories, each containing images of one class label.
-    """
+"""
 
 
 def format(img_dir):
@@ -29,7 +31,7 @@ def format(img_dir):
     Return
     ______
     (subDir1, subDir2) : tuple
-        The two image subdirectories used for training
+        The two image subdirectories used for training/testing
 
     """
 
@@ -86,18 +88,14 @@ def preprocess(img_dir):
     n = 0
     for cat_pic_path in cat_subdir.glob("*.jpg"):
         try:
-            # Todoo: Remove limit of 20 images when done testing
-            #if n > 20:
-            #    break
-            #else:
-            #    n += 1
             cat_img = Image.open(cat_pic_path)
+            print(cat_img.filename)
             cat_img = cat_img.resize((28, 28), Image.Resampling.LANCZOS)  # Resize
             cat_img = cat_img.convert('L')  # Convert to greyscale
             cat_img_array = np.array(cat_img).flatten()  # Flatten image to vector
             cat_img_array = cat_img_array / 255.0  # Normalize pixel values (0, 1)
-
             cat_img_list.append(cat_img_array)  # Append processed image
+
         except (UnidentifiedImageError, IOError, OSError) as e:
             # If an error occurs (e.g., invalid image), print the error and skip this image
             print(f"Skipping invalid image: {cat_pic_path} - {e}")
@@ -106,18 +104,13 @@ def preprocess(img_dir):
     n = 0
     for dog_pic_path in dog_subdir.glob("*.jpg"):
         try:
-            # Todoo: Remove limit of 20 images when done testing
-            #if n > 20:
-            #    break
-            #else:
-            #    n += 1
-
             dog_img = Image.open(dog_pic_path)
+            print(dog_img.filename)
+
             dog_img = dog_img.resize((28, 28), Image.Resampling.LANCZOS)  # Resize to 28x28
             dog_img = dog_img.convert('L')  # Convert the image to grayscale
             dog_img_array = np.array(dog_img).flatten()  # Flatten image to vector
             dog_img_array = dog_img_array / 255.0  # Normalize pixel values (0, 1)
-
             dog_img_list.append(dog_img_array)  # Append processed image
 
         except (UnidentifiedImageError, IOError, OSError) as e:
@@ -139,3 +132,61 @@ def preprocess(img_dir):
 
     return X, y
 
+
+def restore_image(flattened_img_array, image_size=(28, 28)):
+    restored_img_array = flattened_img_array.reshape(image_size)  # unflatten to 2D
+    restored_img_array = (restored_img_array * 255).astype(np.uint8)  # denormalize
+    restored_image = Image.fromarray(restored_img_array, mode='L')  # convert numpy arr to PIL image
+    restored_image.show() # display image
+    return restored_image
+
+
+def test_model(trained_model, X_test, y_test):
+    """
+    Test the model with the test data and visualize the results.
+
+    Parameters
+    ----------
+    trained_model : object
+        A trained model that has a `predict` method (your custom model).
+
+    X_test : array-like, shape = [n_samples, n_features]
+        Test features.
+
+    y_test : array-like, shape = [n_samples]
+        True labels for test data.
+    """
+
+    # Make predictions on test data using the trained model
+    y_pred = trained_model.predict(X_test)
+
+    # Calculate accuracy
+    accuracy = accuracy_score(y_test, y_pred)
+    print(f"Model Accuracy on Test Data: {accuracy * 100:.2f}%")
+
+    # Plot misclassified samples
+    misclassified_samples = np.where(y_pred != y_test)[0]
+    print(f"Misclassified samples: {len(misclassified_samples)} out of {len(y_test)}")
+
+    # display the first 2 misclassified images
+    for i in misclassified_samples[:2]:
+        plt.imshow(restore_image(X_test[i]), cmap='gray')
+        plt.title(f"Pred: {y_pred[i]}, True: {y_test[i]}")
+        plt.show()
+
+    # Confusion Matrix - Shows TP, TN, FP, FN counts
+    cm = confusion_matrix(y_test, y_pred)
+    disp = ConfusionMatrixDisplay(confusion_matrix=cm)
+    disp.plot(cmap='Blues')
+    plt.show()
+
+    # Plot the error per sample
+    errors = (y_pred != y_test).astype(int)  # 1 if misclassified, 0 if correct
+    plt.figure(figsize=(10, 6))
+    plt.plot(errors, 'ro', label="Misclassified")
+    plt.plot(np.ones_like(errors) * accuracy, 'bo', label="Correct")
+    plt.xlabel('Test Samples')
+    plt.ylabel('Error')
+    plt.title('Misclassified vs Correct Samples')
+    plt.legend()
+    plt.show()
