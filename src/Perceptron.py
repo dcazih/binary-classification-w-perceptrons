@@ -64,3 +64,14 @@ class Perceptron:
                 errors += int(update != 0.0)  # Check prediction: 1 wrong, 0 correct
             self.errors_.append(errors)
         return self
+
+    def raw_score(self, X):
+        """ Calculate pre activation output"""
+        return np.dot(X, self.w_) + self.b_
+
+    def predict(self, X):
+        """
+        Applies our desired activation function: step
+        And returns a class label
+        """
+        return np.where(self.raw_score(X) >= 0.0, 1, 0)
