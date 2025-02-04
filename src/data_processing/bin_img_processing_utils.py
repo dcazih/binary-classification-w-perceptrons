@@ -3,6 +3,7 @@ from sklearn.metrics import confusion_matrix, accuracy_score, ConfusionMatrixDis
 from PIL import Image, UnidentifiedImageError
 from pathlib import Path
 import numpy as np
+import pandas as pd
 import imgaug.augmenters as iaa
 
 augmenter = iaa.Sequential([
@@ -25,7 +26,82 @@ augmenter = iaa.Sequential([
 """
 
 
-def format(img_dir):
+# Standard data functions
+
+def csvFormat(dir):
+    data = Path(dir)
+    if data.suffix != ".csv":
+        raise FileNotFoundError (f"Error: expected file format .cvs but found {data.suffix}")
+    return data
+
+def preprocess(dir):
+
+    data = csvFormat(dir)
+    df = pd.read_csv(data)
+
+
+
+# Test Functions
+def test_model(trained_model, X_test, y_test):
+    """
+    Test the model with the test data and visualize the results.
+
+    Parameters
+    ----------
+    trained_model : object
+        A trained model that has a `predict` method (your custom model).
+
+    X_test : array-like, shape = [n_samples, n_features]
+        Test features.
+
+    y_test : array-like, shape = [n_samples]
+        True labels for test data.
+    """
+
+    # Make predictions on test data using the trained model
+    y_pred = trained_model.predict(X_test)
+
+    # Calculate accuracy
+    accuracy = accuracy_score(y_test, y_pred)
+    print(f"Model Accuracy on Test Data: {accuracy * 100:.2f}%")
+
+    # Plot misclassified samples
+    misclassified_samples = np.where(y_pred != y_test)[0]
+    print(f"Misclassified samples: {len(misclassified_samples)} out of {len(y_test)}")
+
+    # display the first 2 misclassified images
+    for i in misclassified_samples[:1]:
+        plt.imshow(restore_image(X_test[i]), cmap='gray')
+        plt.title(f"Pred: {y_pred[i]}, True: {y_test[i]}")
+        #plt.show()
+
+    # Confusion Matrix - Shows TP, TN, FP, FN counts
+    cm = confusion_matrix(y_test, y_pred)
+    disp = ConfusionMatrixDisplay(confusion_matrix=cm)
+    disp.plot(cmap='Blues')
+    #plt.show()
+
+    # Plot the error per sample
+    errors = (y_pred != y_test).astype(int)  # 1 if misclassified, 0 if correct
+    plt.figure(figsize=(10, 6))
+    plt.plot(errors, 'ro', label="Misclassified")
+    plt.plot(np.ones_like(errors) * accuracy, 'bo', label="Correct")
+    plt.xlabel('Test Samples')
+    plt.ylabel('Error')
+    plt.title('Misclassified vs Correct Samples')
+    plt.legend()
+    #plt.show()
+
+# Image Functions
+
+def restore_image(flattened_img_array, image_size=(28, 28)):
+    restored_img_array = flattened_img_array.reshape(image_size)  # unflatten to 2D
+    restored_img_array = (restored_img_array * 255).astype(np.uint8)  # denormalize
+    restored_image = Image.fromarray(restored_img_array, mode='L')  # convert numpy arr to PIL image
+    restored_image.show() # display image
+    return restored_image
+
+def imageFormat(img_dir):
     """
     Function ensures given path img_dir contains the required formatting:
         - Exactly two folders
@@ -66,8 +142,7 @@ def format(img_dir):
     print("Format Check: Passed")
     return subdirs[0], subdirs[1]
 
-
-def preprocess(img_dir, augment=True):
+def image_preprocess(img_dir, augment=True):
     """
     Process the image data to flatten and normalize each image, label them
     and return them as X and y, our desired calculation parameters
@@ -158,60 +233,3 @@ def preprocess(img_dir, augment=True):
     return X, y
 
 
-def restore_image(flattened_img_array, image_size=(28, 28)):
-    restored_img_array = flattened_img_array.reshape(image_size)  # unflatten to 2D
-    restored_img_array = (restored_img_array * 255).astype(np.uint8)  # denormalize
-    restored_image = Image.fromarray(restored_img_array, mode='L')  # convert numpy arr to PIL image
-    restored_image.show() # display image
-    return restored_image
-
-
-def test_model(trained_model, X_test, y_test):
-    """
-    Test the model with the test data and visualize the results.
-
-    Parameters
-    ----------
-    trained_model : object
-        A trained model that has a `predict` method (your custom model).
-
-    X_test : array-like, shape = [n_samples, n_features]
-        Test features.
-
-    y_test : array-like, shape = [n_samples]
-        True labels for test data.
-    """
-
-    # Make predictions on test data using the trained model
-    y_pred = trained_model.predict(X_test)
-
-    # Calculate accuracy
-    accuracy = accuracy_score(y_test, y_pred)
-    print(f"Model Accuracy on Test Data: {accuracy * 100:.2f}%")
-
-    # Plot misclassified samples
-    misclassified_samples = np.where(y_pred != y_test)[0]
-    print(f"Misclassified samples: {len(misclassified_samples)} out of {len(y_test)}")
-
-    # display the first 2 misclassified images
-    for i in misclassified_samples[:2]:
-        plt.imshow(restore_image(X_test[i]), cmap='gray')
-        plt.title(f"Pred: {y_pred[i]}, True: {y_test[i]}")
-        plt.show()
-
-    # Confusion Matrix - Shows TP, TN, FP, FN counts
-    cm = confusion_matrix(y_test, y_pred)
-    disp = ConfusionMatrixDisplay(confusion_matrix=cm)
-    disp.plot(cmap='Blues')
-    plt.show()
-
-    # Plot the error per sample
-    errors = (y_pred != y_test).astype(int)  # 1 if misclassified, 0 if correct
-    plt.figure(figsize=(10, 6))
-    plt.plot(errors, 'ro', label="Misclassified")
-    plt.plot(np.ones_like(errors) * accuracy, 'bo', label="Correct")
-    plt.xlabel('Test Samples')
-    plt.ylabel('Error')
-    plt.title('Misclassified vs Correct Samples')
-    plt.legend()
-    plt.show()
