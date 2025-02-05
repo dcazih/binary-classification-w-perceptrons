@@ -1,10 +1,10 @@
-from data_processing.BinImgProcessor import BinImgProcessor
-from data_processing.bin_img_processing_utils import test_model
+from data_processing.BinClassifProcessor import BinClassifProcessor
+from data_processing.bin_classif_processing_utils import test_model
 from src.Perceptron import Perceptron
 from matplotlib import pyplot as plt
 
-image_data_path = r"C:\Users\azihd\OneDrive\Documents\binary-classification-w-perceptrons\PetImages"
-handler = BinImgProcessor(image_data_path)
+data_path = r"C:\Users\azihd\OneDrive\Documents\binary-classification-w-perceptrons\data\url_spam_classification.csv"
+handler = BinClassifProcessor(data_path)
 
 # Get data
 if handler.processed_data_path.exists():
@@ -12,16 +12,16 @@ if handler.processed_data_path.exists():
     X, y, X_test, y_test = handler.load()
     print("Done!")
 else:
-    print("Processing image data ... ")
-    handler.process(image_data_path)
+    print("Processing data ... ")
+    handler.process(4000)  # param: max_features my system can handle
     print("Loading data ... ")
     X, y, X_test, y_test = handler.load()
     print("Done!")
 
 # Start data learning
-perceptron = Perceptron(eta=0.01, n_epochs=300, random_seed=4078)
-trained_model = perceptron.train(X, y)
-print("Trained!")
+perceptron = Perceptron()
+trained_model = perceptron.train(X, y,)
+print("Done!")
 
 # Plot errors
 plt.plot(range(1, len(trained_model.errors_) + 1), trained_model.errors_, marker='o')
