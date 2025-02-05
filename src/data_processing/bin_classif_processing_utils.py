@@ -1,4 +1,5 @@
 from matplotlib import pyplot as plt
+from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics import confusion_matrix, accuracy_score, ConfusionMatrixDisplay
 from PIL import Image, UnidentifiedImageError
 from pathlib import Path
@@ -13,7 +14,6 @@ augmenter = iaa.Sequential([
     iaa.GaussianBlur(sigma=(0.0, 0.3))  # Light blur to simulate slight focus differences
 ])
 
-
 """
     Functions for processing binary image data for binary classification.
     
@@ -27,18 +27,32 @@ augmenter = iaa.Sequential([
 
 
 # Standard data functions
-
 def csvFormat(dir):
     data = Path(dir)
     if data.suffix != ".csv":
-        raise FileNotFoundError (f"Error: expected file format .cvs but found {data.suffix}")
+        raise FileNotFoundError(f"Error: expected file format .cvs but found {data.suffix}")
     return data
 
-def preprocess(dir):
 
+def preprocess(dir, feature, label, max_features, standardize):
     data = csvFormat(dir)
     df = pd.read_csv(data)
 
+    vectorizer = CountVectorizer(max_features=max_features, )
+
+    # Create feature matrix (X): a 2D numpy array of numpy vector images (arrays)\
+    X = vectorizer.fit_transform(df[feature]).toarray()
+
+    # Create label vector (y): a 1D numpy array, denoting 1 for cats and 0 for dogs
+    y = np.array(df[label])  # true: url is spam, false: not spam
+
+    # Perform a standardization to sample features (X)
+    if standardize:
+        X_mean = np.mean(X)
+        X_std = np.std(X)
+        X = (X - X_mean) / X_std
+
+    return X, y
 
 
 # Test Functions
@@ -69,17 +83,19 @@ def test_model(trained_model, X_test, y_test):
     misclassified_samples = np.where(y_pred != y_test)[0]
     print(f"Misclassified samples: {len(misclassified_samples)} out of {len(y_test)}")
 
+    """
     # display the first 2 misclassified images
     for i in misclassified_samples[:1]:
         plt.imshow(restore_image(X_test[i]), cmap='gray')
         plt.title(f"Pred: {y_pred[i]}, True: {y_test[i]}")
-        #plt.show()
+        # plt.show()
+    """
 
     # Confusion Matrix - Shows TP, TN, FP, FN counts
     cm = confusion_matrix(y_test, y_pred)
     disp = ConfusionMatrixDisplay(confusion_matrix=cm)
     disp.plot(cmap='Blues')
-    #plt.show()
+    # plt.show()
 
     # Plot the error per sample
     errors = (y_pred != y_test).astype(int)  # 1 if misclassified, 0 if correct
@@ -90,15 +106,15 @@ def test_model(trained_model, X_test, y_test):
     plt.ylabel('Error')
     plt.title('Misclassified vs Correct Samples')
     plt.legend()
-    #plt.show()
+    # plt.show()
+
 
 # Image Functions
-
 def restore_image(flattened_img_array, image_size=(28, 28)):
     restored_img_array = flattened_img_array.reshape(image_size)  # unflatten to 2D
     restored_img_array = (restored_img_array * 255).astype(np.uint8)  # denormalize
     restored_image = Image.fromarray(restored_img_array, mode='L')  # convert numpy arr to PIL image
-    restored_image.show() # display image
+    restored_image.show()  # display image
     return restored_image
 
 def imageFormat(img_dir):
@@ -215,8 +231,6 @@ def image_preprocess(img_dir, augment=True):
             print(f"Skipping invalid image: {dog_pic_path} - {e}")
 
     # Create feature matrix (X): a 2D numpy array of numpy vector images (arrays)
-
-
     print(len(cat_img_list), len(dog_img_list))
     X = np.array(cat_img_list + dog_img_list, dtype=float)
     print("Feature Matrix: Created")
@@ -231,5 +245,3 @@ def image_preprocess(img_dir, augment=True):
     X, y = X[permutation], y[permutation]
 
     return X, y
-
-
