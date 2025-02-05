@@ -5,14 +5,7 @@ from PIL import Image, UnidentifiedImageError
 from pathlib import Path
 import numpy as np
 import pandas as pd
-import imgaug.augmenters as iaa
 
-augmenter = iaa.Sequential([
-    iaa.Fliplr(0.5),  # Flip 50% of images horizontally
-    iaa.Affine(rotate=(-10, 10)),  # Slight rotation between -10° to 10°
-    iaa.Multiply((0.9, 1.1)),  # Adjust brightness slightly
-    iaa.GaussianBlur(sigma=(0.0, 0.3))  # Light blur to simulate slight focus differences
-])
 
 """
     Functions for processing binary image data for binary classification.
@@ -195,9 +188,6 @@ def image_preprocess(img_dir, augment=True):
             cat_img = cat_img.convert('L')  # Convert to greyscale
 
             cat_img_array = np.array(cat_img)
-            if augment:
-                cat_img_array = augmenter.augment_image(cat_img_array)  # Apply augmentation
-
             cat_img_array = cat_img_array.flatten()  # Flatten image to vector
             cat_img_array = cat_img_array / 255.0  # Normalize pixel values (0, 1)
 
@@ -218,9 +208,6 @@ def image_preprocess(img_dir, augment=True):
             dog_img = dog_img.convert('L')  # Convert the image to grayscale
 
             dog_img_array = np.array(dog_img)
-            if augment:
-                dog_img_array = augmenter.augment_image(dog_img_array)  # Apply augmentation
-
             dog_img_array = dog_img_array.flatten()  # Flatten image to vector
             dog_img_array = dog_img_array / 255.0  # Normalize pixel values (0, 1)
 
