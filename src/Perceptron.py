@@ -23,7 +23,7 @@ class Perceptron:
 
     """
 
-    def __init__(self, eta=0.01, n_epochs=50, random_seed=4078):
+    def __init__(self, eta=0.00005, n_epochs=150, random_seed=76):
         self.eta = eta
         self.n_epochs = n_epochs
         self.random_seed = random_seed
@@ -45,21 +45,20 @@ class Perceptron:
         self : object
             Returns the instance itself."""
 
-        # Initialize a random normal dist of weights
+        # Initialize weights, bias and errors
         rgen = np.random.RandomState(self.random_seed)
-
-        self.w_ = rgen.normal(loc=0.0, scale=0.01, size=X.shape[1])
-
-        # Initialize bias and errors
+        self.w_ = rgen.normal(loc=0.0, scale=0.01, size=X.shape[1])  # a random normal dist of weights
         self.b_ = np.float_(0.0)
         self.errors_ = []
 
         # Run training
-        for i in range(self.n_epochs):
+        print("Training Model ...")
+        for epoch in range(self.n_epochs):
+            print(f"Epoch {epoch + 1}/{self.n_epochs}")
             errors = 0
             for xi, target in zip (X, y):
                 update = self.eta * (target - self.predict(xi))  # update = η * (yi − ̂yi)
-                self.w_ += update * xi  # w_ = w_ + update * xi
+                self.w_ = self.w_ + update * xi  # w_ = w_ + update * xi
                 self.b_ += update  # b_ = b_ + update
                 errors += int(update != 0.0)  # Check prediction: 1 wrong, 0 correct
             self.errors_.append(errors)
