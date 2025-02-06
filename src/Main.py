@@ -1,11 +1,10 @@
 import sys
 import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
 from data_processing.BinClassifProcessor import BinClassifProcessor
 from data_processing.bin_classif_processing_utils import test_model
 from src.Perceptron import Perceptron
 from matplotlib import pyplot as plt
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 data_path = r"/workspaces/binary-classification-w-perceptrons/data/url_spam_classification.csv"
 handler = BinClassifProcessor(data_path)
