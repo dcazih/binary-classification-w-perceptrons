@@ -16,7 +16,7 @@ handler = BinClassifProcessor(data_path)
 # Get data
 getData = True
 if getData:
-    if False: #handler.processed_data_path.exists():
+    if handler.processed_data_path.exists():
         print("Loading previous data ... ")
         X, y, X_test, y_test = handler.load()
         print("Done!")
@@ -39,27 +39,29 @@ if not isTrained:
     plt.plot(range(1, len(trained_model.errors_) + 1), trained_model.errors_, marker='o')
     plt.xlabel('Epochs')
     plt.ylabel('Number of updates')
-    plt.savefig("plot.pdf")  # Save as PDF
+    plt.savefig("good_convergence_50epoch90percent.pdf")  # Save as PDF
     # plt.show()
 
     print("Done!")
 else:
     # Load a perceptron with trained weights and bias
     data = np.load(Path(__file__).parent / r"trained_model_data.npz")
-    trained_model = Perceptron(data["weights"], data["bias"])
-    print(f"Weights: {trained_model.w_}\n Bias: {trained_model.b_}")
+    trained_model = Perceptron(data["w"], data["b"])
+    print(f"Weights: {trained_model.w_}\nBias: {trained_model.b_}")
 
-    #test_model(trained_model, X_test, y_test)
+    test_model(trained_model, X_test, y_test)
 
     # Load vectorizer used in training
-    vectorizer = joblib.load("vectorizer.pkl")
+    vectorizer = joblib.load(r"C:\Users\azihd\OneDrive\Documents\binary-classification-w-perceptrons\vectorizer.pkl")
 
     # Prompt user to check a url for spam
     while True:
         url = get_valid_url()
         X = process_url(url, vectorizer)
 
-        print(trained_model.predict(X))
-
+        if trained_model.predict(X) == [0]:
+            print("URL is not spam (most likely)\n")
+        else:
+            print("URL is spam\n")
 
 

@@ -26,7 +26,7 @@ class Perceptron:
 
     """
 
-    def __init__(self, w_=None, b_=None, eta=0.00005, n_epochs=25, random_seed=76, permutate=True):
+    def __init__(self, w_=None, b_=None, eta=0.00005, n_epochs=250, random_seed=76, permutate=True):
         self.permutate = permutate
 
         self.eta = eta
