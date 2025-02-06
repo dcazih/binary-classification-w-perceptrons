@@ -1,11 +1,11 @@
+import re
+import numpy as np
+import pandas as pd
 from matplotlib import pyplot as plt
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics import confusion_matrix, accuracy_score, ConfusionMatrixDisplay
 from PIL import Image, UnidentifiedImageError
 from pathlib import Path
-import numpy as np
-import pandas as pd
-
 
 """
     Functions for processing binary image data for binary classification.
@@ -18,12 +18,24 @@ import pandas as pd
     The image data is assumed to be organized into two subdirectories, each containing images of one class label.
 """
 # User test functions
-def process_url(url):
+def get_valid_url():
+    url_pattern = re.compile(
+        r"^(https?:\/\/)?"  # Optional http or https
+        r"([\da-z\.-]+)\.([a-z\.]{2,6})"  # Domain name
+        r"([\/\w\.-]*)*\/?$"  # Optional path
+    )
+
+    while True:
+        url = input("Enter a valid URL: ").strip()
+        if url_pattern.match(url):
+            return url
+        print("Invalid URL. Please try again.")
+
+def process_url(url, vectorizer):
     # Convert URL into a dataframe to match preprocessing format
     df = pd.DataFrame([url], columns=["urls"])
 
     # Transform using the given vectorizer
-    vectorizer = CountVectorizer()
     X = vectorizer.transform(df["urls"]).toarray()
 
     return X
@@ -42,6 +54,7 @@ def preprocess(dir, feature, label, max_features, standardize):
 
     vectorizer = CountVectorizer(max_features=max_features)
 
+
     # Create feature matrix (X): a 2D numpy array of numpy vector images (arrays)\
     X = vectorizer.fit_transform(df[feature]).toarray()
 
@@ -54,7 +67,7 @@ def preprocess(dir, feature, label, max_features, standardize):
         X_std = np.std(X)
         X = (X - X_mean) / X_std
 
-    return X, y
+    return X, y, vectorizer
 
 
 # Test Functions
