@@ -1,5 +1,7 @@
-import numpy as np
 from data_processing.bin_classif_processing_utils import test_model
+from pathlib import Path
+import numpy as np
+
 class Perceptron:
     """Perceptron Classifiers
 
@@ -86,3 +88,6 @@ class Perceptron:
         And returns a class label
         """
         return np.where(self.raw_score(X) >= 0.0, 1, 0)
+
+    def save_weights(self, dest):
+        np.savez(Path(__file__).parent / dest, weights=self.w_, bias=self.b_)
