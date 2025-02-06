@@ -11,7 +11,7 @@ data_path = r"/workspaces/binary-classification-w-perceptrons/data/url_spam_clas
 handler = BinClassifProcessor(data_path)
 
 # Get data
-if False:#handler.processed_data_path.exists():
+if False: #handler.processed_data_path.exists():
     print("Loading previous data ... ")
     X, y, X_test, y_test = handler.load()
     print("Done!")
@@ -24,7 +24,8 @@ else:
 
 # Start data learning
 perceptron = Perceptron()
-trained_model = perceptron.train(X, y,)
+trained_model = perceptron.train(X, y)
+trained_model.save_weights("trained_model_data.npz")
 print("Done!")
 
 # Plot errors
