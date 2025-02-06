@@ -27,10 +27,15 @@ class Perceptron:
     """
 
     def __init__(self, w_=None, b_=None, eta=0.00005, n_epochs=25, random_seed=76, permutate=True):
+        self.permutate = permutate
+
         self.eta = eta
         self.n_epochs = n_epochs
         self.random_seed = random_seed
-        self.permutate = permutate
+
+        self.w_ = w_
+        self.b_ = b_
+
 
     def train(self, X, y):
         """Fit training data
@@ -90,4 +95,4 @@ class Perceptron:
         return np.where(self.raw_score(X) >= 0.0, 1, 0)
 
     def save_weights(self, dest):
-        np.savez(Path(__file__).parent / dest, weights=self.w_, bias=self.b_)
+        np.savez(Path(__file__).parent / dest, w=self.w_, b=self.b_, e=self.errors_)
