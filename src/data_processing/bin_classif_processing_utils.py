@@ -17,7 +17,16 @@ import pandas as pd
     
     The image data is assumed to be organized into two subdirectories, each containing images of one class label.
 """
+# User test functions
+def process_url(url):
+    # Convert URL into a dataframe to match preprocessing format
+    df = pd.DataFrame([url], columns=["urls"])
 
+    # Transform using the given vectorizer
+    vectorizer = CountVectorizer()
+    X = vectorizer.transform(df["urls"]).toarray()
+
+    return X
 
 # Standard data functions
 def csvFormat(dir):
@@ -31,7 +40,7 @@ def preprocess(dir, feature, label, max_features, standardize):
     data = csvFormat(dir)
     df = pd.read_csv(data)
 
-    vectorizer = CountVectorizer(max_features=max_features, )
+    vectorizer = CountVectorizer(max_features=max_features)
 
     # Create feature matrix (X): a 2D numpy array of numpy vector images (arrays)\
     X = vectorizer.fit_transform(df[feature]).toarray()
